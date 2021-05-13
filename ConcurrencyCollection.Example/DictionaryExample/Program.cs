@@ -5,16 +5,16 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ListExample
+namespace DictionaryExample
 {
     class Program
     {
         /*
-         아래 코드의 주석을 사용하여 ConcurrentBag과 List를 번갈아 사용해보세요.
+         아래 코드의 주석을 사용하여 ConcurrentDictionary와 Dictionary를 번갈아 사용해보세요.
          */
-        //static readonly ConcurrentBag<string> bag = new ConcurrentBag<string>();
-        static readonly List<string> bag = new List<string>();
-
+        static readonly ConcurrentDictionary<string, string> dictionary = new();
+        //static readonly Dictionary<string, string> dictionary = new();
+    
         static void Main(string[] args)
         {
             var cancellationTokenSource = new CancellationTokenSource();
@@ -25,9 +25,8 @@ namespace ListExample
                 Read(cancellationTokenSource.Token)
             );
 
-            var msg = string.Join(string.Empty, bag.ToArray());
-            Console.WriteLine(msg.Length);
-         }
+            Console.WriteLine(dictionary.Count);
+        }
 
         static async Task Read(CancellationToken cancellationToken)
         {
@@ -40,10 +39,11 @@ namespace ListExample
                     break;
                 }
 
-                foreach (var item in bag) { } //아무것도 안하고 반복자만 수행해도 동시성 보장이 안되면 문제가 생김.
+                foreach (var item in dictionary) { } //아무것도 안하고 반복자만 수행해도 동시성 보장이 안되면 문제가 생김.
             }
         }
 
+        static readonly Random random = new();
         static async Task Add(CancellationToken cancellationToken)
         {
             await Task.Delay(1);
@@ -55,7 +55,15 @@ namespace ListExample
                     break;
                 }
 
-                bag.Add("!");
+                var time = DateTime.Now.ToString("yyyyMMddHHmmss.ffffffzzz") + random.Next();
+                while (true)
+                {
+                    if (dictionary.TryAdd(time, time)) break;
+                    else
+                    {
+                        Console.WriteLine($"fail : {time}");
+                    }
+                }
             }
         }
     }
